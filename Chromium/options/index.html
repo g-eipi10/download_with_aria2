@@ -15,8 +15,10 @@
             </div>
             <div id="manager" class="offside">
                 <span id="export" button i18n>option_export</span>
-                <span id="import" button i18n>option_import</span>
-                <input id="options" type="file" accept=".json">
+                <label button>
+                    <span i18n>option_import</span>
+                    <input id="import" type="file" accept=".json" style="display: none">
+                </label>
             </div>
         </div>
         <hr>
@@ -75,6 +77,17 @@
                     <option value="1" i18n>option_capture_mode_filters</option>
                     <option value="2" i18n>option_always</option>
                 </select>
+            </div>
+            <div only="firefox" gear="mode,capture&1,2" title="option_folder_mode_desc" i18n_title>
+                <span class="title" i18n>option_folder_mode</span>
+                <select local="mode" root="folder">
+                    <option value="0" i18n>common_default</option>
+                    <option value="1" i18n>option_folder_browser</option>
+                    <option value="2" i18n>option_folder_custom</option>
+                </select>
+                <div gear="mode,folder&2">
+                    <input local="uri" root="folder" type="text" placeholder="C:\Aria2 Downloads">
+                </div>
             </div>
             <div gear="mode,capture&1" class="container">
                 <div title="option_capture_fileSize_desc" i18n_title>
