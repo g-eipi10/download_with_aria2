@@ -10,8 +10,8 @@
     height: 360px;
 }
 
-.container > *:nth-child(n+2) {
-    margin-top: 15px;
+.container > * {
+    margin-bottom: 15px;
 }
 
 label {
@@ -32,7 +32,7 @@ label .suffix2 {
 }
 
 .extend > input {
-    width: 90%;
+    width: calc(100% - 44px);
 }
 
 .extend > [button] {
@@ -44,7 +44,6 @@ label .suffix2 {
     padding: 3px;
     border: 2px inset #c48;
 }
-
 
 .submenu {
     text-align: center;
