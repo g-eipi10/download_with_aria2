@@ -12,29 +12,27 @@
 }
 
 .session {
+    position: relative;
     border: 1px outset #CCC;
     padding: 3px;
     margin-bottom: 5px;
 }
 
 .details {
-    width: calc(100% - 25px);
-}
-
-.details, .menu {
-    display: inline-block;
+    width: calc(100% - 20px);
 }
 
 .triple > * > * {
     margin-left: 4px;
 }
 
-.menu {
-    vertical-align: top;
+.session .sidemenu {
+    top: 3px;
+    right: 3px;
     width: 20px;
 }
 
-.menu [button] {
+.session [button] {
     font-size: 12px;
     padding: 1px;
 }
