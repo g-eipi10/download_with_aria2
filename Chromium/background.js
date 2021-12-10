@@ -1,7 +1,6 @@
-var g_fileSize = 0;
-chrome.runtime.getPlatformInfo(platform => {
-    aria2Platform = platform.os
-});
+var disabled = false;
+var download_info = new Object()
+download_info = {};
 
 chrome.contextMenus.create({
     title: chrome.i18n.getMessage('extension_name'),
@@ -17,34 +16,47 @@ chrome.contextMenus.onClicked.addListener(info => {
 
 chrome.browserAction.setBadgeBackgroundColor({color: '#3cc'});
 
-chrome.downloads.onChanged.addListener(item => {
-    console.log(item);
-    if (item.fileSize) {
-        g_fileSize = item.fileSize.current;
-        console.log(g_fileSize);
-    }
-    if (!item.filename || aria2RPC.capture['mode'] === '0'|| aria2Session.url.startsWith('blob') || aria2Session.url.startsWith('data')) {
-        // g_fileSize = 0;
+chrome.downloads.onDeterminingFilename.addListener(item => {
+    if (item.fileSize) { download_info.fileSize = item.fileSize; }
+    if (aria2RPC.capture['mode'] === '0' || item.finalUrl.startsWith('blob') || item.finalUrl.startsWith('data')) {
+        disabled = true;
+        download_info = {};
         return;
     }
 
-    aria2Session.filename = getFileNameFromUri(item.filename.current);
-    aria2Session.domain = getDomainFromUrl(aria2Session.referer);
-    aria2Session.folder = aria2RPC.folder['mode'] === '1' ? item.filename.current.slice(0, item.filename.current.indexOf(aria2Session.filename)) : aria2RPC.folder['mode'] === '2' ? aria2RPC.folder['uri'] : null;
-
-    if (captureDownload(aria2Session.domain, getFileExtension(aria2Session.filename), g_fileSize)) {
-        chrome.downloads.cancel(item.id, () => {
-            chrome.downloads.erase({id: item.id}, () => {
-                startDownload(aria2Session);
-            });
-        });
-    }
+    chrome.tabs.query({active: true, currentWindow: true}, tabs => {
+        download_info.url = item.finalUrl;
+        download_info.referer = item.referrer && item.referrer !== 'about:blank' ? item.referrer : tabs[0].url;
+        download_info.domain = getDomainFromUrl(download_info.referer);
+        download_info.filename = item.filename;
+    });
 });
 
-chrome.downloads.onCreated.addListener(item => {
-    chrome.tabs.query({active: true, currentWindow: true}, tabs => {
-        aria2Session = {url: item.finalUrl, referer: item.referrer ? item.referrer : tabs[0].url, fileSize: item.fileSize};
-    });
+chrome.downloads.onChanged.addListener(item => {
+    if (disabled === true){
+        disabled = false;
+        download_info = {};
+        return;
+    }
+    if (item.fileSize) { download_info.fileSize = item.fileSize.current; }
+    if (item.filename) {
+        download_info.path = item.filename.current;
+        var url = download_info.url;
+        var referer = download_info.referer;
+        var domain = download_info.domain;
+        var filename = download_info.filename;
+
+        if (captureDownload(domain, getFileExtension(filename), download_info.fileSize)) {
+            chrome.downloads.cancel(item.id, () => {
+                var folder = aria2RPC.folder['mode'] === '1' ? download_info.path.slice(0, download_info.path.indexOf(filename)) : aria2RPC.folder['mode'] === '2' ? aria2RPC.folder['uri'] : null;
+                chrome.downloads.erase({id: item.id}, () => {
+                    startDownload({url, referer, domain, filename, folder});
+                    disabled = false;
+                    download_info = {};
+                });
+            });
+        }
+    }
 });
 
 function startDownload({url, referer, domain, filename, folder}, options = {}) {
@@ -65,40 +77,25 @@ function startDownload({url, referer, domain, filename, folder}, options = {}) {
 }
 
 function captureDownload(domain, fileExt, fileSize) {
-    console.log('reject ------------------------')
-    console.log(aria2RPC.capture['reject'].includes(domain));
     if (aria2RPC.capture['reject'].includes(domain)) {
         return false;
     }
-    console.log('mode -----------------------');
-    console.log(aria2RPC.capture['mode'] === '2' || aria2RPC.capture['mode'] === '1');
     if (!(aria2RPC.capture['mode'] === '2' || aria2RPC.capture['mode'] === '1')) {
         return false;
         // return true;
     }
-    console.log('resolve -----------------------');
-    console.log(aria2RPC.capture['resolve']);
-    console.log(aria2RPC.capture['resolve'].includes(domain));
     if (aria2RPC.capture['resolve'].length != 0 && !aria2RPC.capture['resolve'].includes(domain)) {
         return false;
         // return true;
     }
-    console.log('fileExt ------------------------');
-    console.log(aria2RPC.capture['fileExt'].includes(fileExt))
     if (aria2RPC.capture['fileExt'].length != 0 && !aria2RPC.capture['fileExt'].includes(fileExt)) {
         return false;
         // return true;
     }
-    console.log('filesize --------------------');
-    console.log(aria2RPC.capture['fileSize'] > 0 && fileSize >= aria2RPC.capture['fileSize']);
-    console.log(g_fileSize);
-    console.log(fileSize);
     if (!(aria2RPC.capture['fileSize'] > 0 && fileSize >= aria2RPC.capture['fileSize'])) {
         return false;
         // return true;
     }
-    console.log(fileSize);
-    g_fileSize = 0;
     return true;
 }
 
@@ -114,11 +111,6 @@ function getDomainFromUrl(url) {
     var suffix = /([^\.]+)\.([^\.]+)\.([^\.]+)$/.exec(hostname);
     var gSLD = ['com', 'net', 'org', 'edu', 'gov', 'co', 'ne', 'or', 'me'];
     return gSLD.includes(suffix[2]) ? suffix[1] + '.' + suffix[2] + '.' + suffix[3] : suffix[2] + '.' + suffix[3];
-}
-
-function getFileNameFromUri(uri) {
-    var index = aria2Platform === 'win' ? uri.lastIndexOf('\\') : uri.lastIndexOf('/');
-    return uri.slice(index + 1);
 }
 
 function getFileExtension(filename) {
