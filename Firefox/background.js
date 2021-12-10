@@ -1,3 +1,6 @@
+var download_info = new Object()
+download_info = {};
+
 browser.runtime.getPlatformInfo(platform => {
     aria2Platform = platform.os
 });
@@ -16,20 +19,32 @@ browser.contextMenus.onClicked.addListener((info, tab) => {
 
 browser.browserAction.setBadgeBackgroundColor({color: '#3cc'});
 
-browser.downloads.onCreated.addListener(async item => {
+browser.downloads.onCreated.addListener(item => {
+    console.log('on created');
+    console.log(item);
     if (aria2RPC.capture['mode'] === '0' || item.url.startsWith('blob') || item.url.startsWith('data')) {
         return;
     }
 
-    var tabs = await browser.tabs.query({active: true, currentWindow: true});
-    var url = item.url;
-    var referer = item.referrer && item.referrer !== 'about:blank' ? item.referrer : tabs[0].url;
-    var domain = getDomainFromUrl(referer);
-    var filename = getFileNameFromUri(item.filename);
-    var folder = aria2RPC.folder['mode'] === '1' ? item.filename.slice(0, item.filename.indexOf(filename)) : aria2RPC.folder['mode'] === '2' ? aria2RPC.folder['uri'] : null;
-    var storeId = tabs[0].cookieStoreId;
+    download_info.tabs = browser.tabs.query({active: true, currentWindow: true});
+    download_info.url = item.url;
+    download_info.referer = item.referrer && item.referrer !== 'about:blank' ? item.referrer : tabs[0].url;
+    download_info.domain = getDomainFromUrl(referer);
+    download_info.filename = getFileNameFromUri(item.filename);
+    download_info.folder = aria2RPC.folder['mode'] === '1' ? item.filename.slice(0, item.filename.indexOf(filename)) : aria2RPC.folder['mode'] === '2' ? aria2RPC.folder['uri'] : null;
+    download_info.storeId = tabs[0].cookieStoreId;
+});
 
-    if (await captureDownload(domain, getFileExtension(filename), url)) {
+browser.downloads.onChanged.addListener(item => {
+    console.log('on changed');
+    console.log(item);
+    var domain = download_info.domain;
+    var url = download_info.url;
+    var referer = download_info.referer;
+    var filename = download_info.filename;
+    var folder = download_info.folder;
+    var storeId = download_info.storeId;
+    if (captureDownload(domain, getFileExtension(filename), url)) {
         browser.downloads.cancel(item.id).then(() => {
             browser.downloads.erase({id: item.id}).then(() => {
                 startDownload({url, referer, domain, filename, folder, storeId});
@@ -38,8 +53,8 @@ browser.downloads.onCreated.addListener(async item => {
     }
 });
 
-async function startDownload({url, referer, domain, filename, folder, storeId}, options = {}) {
-    var cookies = await browser.cookies.getAll({url, storeId});
+function startDownload({url, referer, domain, filename, folder, storeId}, options = {}) {
+    var cookies = browser.cookies.getAll({url, storeId});
     options['header'] = ['Cookie:', 'Referer: ' + referer, 'User-Agent: ' + aria2RPC['useragent']];
     cookies.forEach(cookie => options['header'][0] += ' ' + cookie.name + '=' + cookie.value + ';');
     if (folder) {
@@ -54,7 +69,7 @@ async function startDownload({url, referer, domain, filename, folder, storeId}, 
     downloadWithAria2(url, options);
 }
 
-async function captureDownload(domain, fileExt, url) {
+function captureDownload(domain, fileExt, url) {
     if (aria2RPC.capture['reject'].includes(domain)) {
         return false;
     }
@@ -70,7 +85,7 @@ async function captureDownload(domain, fileExt, url) {
 // Use Fetch to resolve fileSize untill Mozilla fixes downloadItem.fileSize
 // Some websites will not support this workaround due to their access policy
 // See https://bugzilla.mozilla.org/show_bug.cgi?id=1666137 for more details
-    if (aria2RPC.capture['fileSize'] > 0 && await fetch(url, {method: 'HEAD'}).then(response => response.headers.get('content-length')) >= aria2RPC.capture['fileSize']) {
+    if (aria2RPC.capture['fileSize'] > 0 && fetch(url, {method: 'HEAD'}).then(response => response.headers.get('content-length')) >= aria2RPC.capture['fileSize']) {
         return true;
     }
     return false;
