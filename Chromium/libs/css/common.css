@@ -22,6 +22,10 @@ body {
     right: 0px;
 }
 
+.footmenu {
+    text-align: center;
+}
+
 .double > *, .triple > * {
     position: relative;
     display: inline-block;

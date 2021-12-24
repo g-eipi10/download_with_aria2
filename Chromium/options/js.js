@@ -1,4 +1,9 @@
 document.querySelector('#manager').style.display = location.search === '?popup' ? 'none' : 'block';
+document.querySelector('#back').parentNode.style.display = location.search === '?popup' ? 'block' : 'none';
+
+document.querySelector('#back').addEventListener('click', event => {
+    history.back();
+});
 
 document.querySelector('#export').addEventListener('click', event => {
     var blob = new Blob([JSON.stringify(aria2RPC)], {type: 'application/json; charset=utf-8'});
@@ -17,7 +22,7 @@ document.querySelector('#import').addEventListener('change', event => {
 
 document.querySelector('#aria2_btn').addEventListener('click', event => {
     aria2RPCRequest({id: '', jsonrpc: 2, method: 'aria2.getVersion', params: [aria2RPC.jsonrpc['token']]},
-    version => openModuleWindow('aria2Opt', 'aria2/index.html?' + version.version),
+    version => open('aria2/index.html?' + version.version, '_self'),
     error => showNotification(error));
 });
 
