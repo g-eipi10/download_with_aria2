@@ -2,9 +2,7 @@
 <html>
     <head>
         <meta charset="utf-8">
-        <link rel="stylesheet" href="/libs/css/common.css">
-        <link rel="stylesheet" href="/libs/css/layout.css">
-        <link rel="stylesheet" href="/libs/modules.css">
+        <link rel="stylesheet" href="/libs/style.css">
     </head>
     <body>
         <div class="menubar">
@@ -79,18 +77,18 @@
                     <option value="2" i18n>option_always</option>
                 </select>
             </div>
-            <div only="firefox" gear="mode,capture&1,2" title="option_folder_mode_desc" i18n_title>
+            <div tree="folder" rule="1,2" title="option_folder_mode_desc" i18n_title>
                 <span class="title" i18n>option_folder_mode</span>
                 <select local="mode" root="folder">
                     <option value="0" i18n>common_default</option>
                     <option value="1" i18n>option_folder_browser</option>
                     <option value="2" i18n>option_folder_custom</option>
                 </select>
-                <div gear="mode,folder&2">
+                <div tree="folder" rule="2">
                     <input local="uri" root="folder" type="text" placeholder="C:\Aria2 Downloads">
                 </div>
             </div>
-            <div gear="mode,capture&1" class="container">
+            <div tree="capture" rule="1" class="container">
                 <div title="option_capture_fileSize_desc" i18n_title>
                     <div class="title" i18n>option_capture_fileSize</div>
                     <label>
@@ -112,7 +110,7 @@
                     </div>
                 </div>
             </div>
-            <div gear="mode,capture&1,2" class="container">
+            <div tree="capture" rule="1,2" class="container">
                 <div title="option_capture_reject_desc" i18n_title>
                     <div class="title" i18n>option_capture_reject</div>
                     <div>
@@ -121,11 +119,9 @@
                 </div>
             </div>
         </div>
-        <script src="/libs/modules.js"></script>
-        <script src="/libs/ui/i18n.js"></script>
-        <script src="/libs/ui/tabs.js"></script>
-        <script src="/libs/js/reader.js"></script>
+        <script src="/libs/io.js"></script>
+        <script src="/libs/tabs.js"></script>
+        <script src="/libs/jsonrpc.js"></script>
         <script src="js.js"></script>
-        <script src="/libs/js/jsonrpc.js"></script>
     </body>
 </html>

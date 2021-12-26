@@ -62,7 +62,7 @@ function appendFileToTable(file, table) {
 }
 
 document.querySelector('#name[button]').addEventListener('click', event => {
-    frameElement.remove();
+    history.back();
 });
 
 document.querySelectorAll('[http], [bt]').forEach(field => {
@@ -91,7 +91,7 @@ document.querySelectorAll('[edit]').forEach(node => {
     });
 });
 
-document.querySelector('[feed="all-proxy"]').addEventListener('click', event => {
+document.querySelector('[button][local="uri"]').addEventListener('click', event => {
     changeTaskOption(gid, 'all-proxy', aria2RPC.proxy['uri']);
 });
 
