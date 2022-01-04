@@ -1,12 +1,9 @@
-.triple span {
-    margin-left: 4px;
+.module3 > div {
     border: 1px ridge #ccc;
-    display: inline-block;
-    width: 80%;
-    text-align: center;
+    padding: 5px;
 }
 
-[edit] {
+.plate {
     padding: 4px;
 }
 
@@ -14,51 +11,41 @@
     margin-top: 3px;
 }
 
-#name {
+#session, #uris > * {
+    width: 100%;
     padding: 0px;
-    height: 46px;
+    word-break: break-word;
+}
+
+#session {
     overflow-y: auto;
     margin-bottom: 15px;
 }
 
-#name, #uris * {
-    word-break: break-word;
+#session, #uris > *, .file > * {
+    height: 46px;
 }
 
-
-#uris > *:nth-child(n+2) {
-    margin-top: 3px;
+#uris > * {
+    overflow-y: hidden;
+    margin-top: 5px;
+    text-align: left;
 }
 
-#uris > *:active, #files #index:active {
-    filter: opacity(60%);
+.file {
+    display: grid;
+    grid-template-columns: 40px auto 80px 60px;
 }
 
-table {
-    border-collapse: collapse;
-    width: 100%;
+.file > *:not(#index) {
+    border: 1px ridge #ccc;
 }
 
-td {
-    border: 1px outset #CCC;
-    padding: 5px;
-}
-
-td#index {
-    width: 20px;
+.file > *:not(#name, #index) {
+    line-height: 46px;
     text-align: center;
 }
 
-td#name {
-    width: calc(100% - 140px);
-}
-
-td#size {
-    width: 70px;
-    text-align: center;
-}
-
-td#ratio {
-    width: 50px;
-    text-align: center;
+.file > #name {
+    overflow-y: auto;
 }

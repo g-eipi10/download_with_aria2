@@ -6,35 +6,35 @@
     </head>
     <body>
         <div class="menubar">
-            <span tab i18n>option_basic</span>
-            <span tab i18n>common_advanced</span>
-            <span tab i18n>option_download</span>
+            <button tab i18n>option_basic</button>
+            <button tab i18n>common_advanced</button>
+            <button tab i18n>option_download</button>
             <div class="sidemenu">
-                <span id="back" button i18n>common_back</span>
+                <button id="back" i18n>common_back</button>
             </div>
             <div id="manager" class="sidemenu">
-                <span id="export" button i18n>option_export</span>
-                <label button>
+                <button id="export" button i18n>option_export</button>
+                <button><label>
                     <span i18n>option_import</span>
                     <input id="import" type="file" accept=".json" style="display: none">
-                </label>
+                </label></button>
             </div>
         </div>
         <hr>
-        <div panel class="container">
+        <div panel class="submenu">
             <div title="option_jsonrpc_uri_desc" i18n_title>
                 <div class="title" i18n>option_jsonrpc_uri</div>
-                <div class="extend">
+                <div class="addon">
                     <input local="uri" root="jsonrpc" type="url">
-                    <span id="aria2_btn" button>⚙️</span>
+                    <button id="aria2_btn">⚙️</button>
                 </div>
                 <span i18n>common_default</span>: <u><i>http://localhost:6800/jsonrpc</i></u>
             </div>
             <div title="option_jsonrpc_token_desc" i18n_title>
                 <div class="title" i18n>option_jsonrpc_token</div>
-                <div class="extend">
+                <div class="addon">
                     <input local="token" root="jsonrpc" token="token:" type="password" placeholder="$$secret$$">
-                    <span id="show_btn" button>👁️</span>
+                    <button id="show_btn">👁️</button>
                 </div>
             </div>
             <div title="option_jsonrpc_refresh_desc" i18n_title>
@@ -47,7 +47,7 @@
                 </div>
             </div>
         </div>
-        <div panel class="container">
+        <div panel class="submenu">
             <div title="option_useragent_desc" i18n_title>
                 <div class="title" i18n>option_useragent</div>
                 <div>
@@ -68,7 +68,7 @@
                 </div>
             </div>
         </div>
-        <div panel class="container">
+        <div panel class="submenu">
             <div title="option_capture_mode_desc" i18n_title>
                 <span class="title" i18n>option_capture_mode</span>
                 <select local="mode" root="capture">
@@ -77,7 +77,7 @@
                     <option value="2" i18n>option_always</option>
                 </select>
             </div>
-            <div tree="capture" rule="1" class="container">
+            <div tree="capture" rule="1" class="submenu">
                 <div title="option_capture_fileSize_desc" i18n_title>
                     <div class="title" i18n>option_capture_fileSize</div>
                     <label>
@@ -99,7 +99,7 @@
                     </div>
                 </div>
             </div>
-            <div tree="capture" rule="1,2" class="container">
+            <div tree="capture" rule="1,2" class="submenu">
                 <div title="option_capture_reject_desc" i18n_title>
                     <div class="title" i18n>option_capture_reject</div>
                     <div>

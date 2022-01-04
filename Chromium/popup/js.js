@@ -1,16 +1,14 @@
-var activeQueue = document.querySelector('[queue="active"]');
-var waitingQueue = document.querySelector('[queue="waiting"]');
-var stoppedQueue = document.querySelector('[queue="stopped"]');
+var activeQueue = document.querySelector('div#active');
+var waitingQueue = document.querySelector('div#waiting');
+var stoppedQueue = document.querySelector('div#stopped');
+var currentTab = -1;
 
-document.querySelectorAll('[tab]').forEach(tab => {
-    var active = tab.getAttribute('tab');
+document.querySelectorAll('[tab]').forEach((tab, index, tabs) => {
     tab.addEventListener('click', event => {
-        document.querySelectorAll('[queue]').forEach(queue => {
-            var id = queue.getAttribute('queue');
-            tab.classList.contains('checked') ? queue.style.display = 'block' :
-                id === active ? queue.style.display = 'block' :
-                queue.style.display = document.querySelector('[tab="' + id + '"]').classList.remove('checked') ?? 'none';
-        });
+        currentTab = currentTab === index ? -1 : (tabs[currentTab] ? tabs[currentTab].classList.remove('checked') : null) ?? index;
+        activeQueue.style.display = [-1, 0].includes(currentTab) ? 'block' : 'none';
+        waitingQueue.style.display = [-1, 1].includes(currentTab) ? 'block' : 'none';
+        stoppedQueue.style.display = [-1, 2].includes(currentTab) ? 'block' : 'none';
         tab.classList.toggle('checked');
     });
 });
@@ -30,26 +28,24 @@ document.querySelector('#purdge_btn').addEventListener('click', event => {
 });
 
 function aria2RPCClient() {
-    document.querySelector('#caution').style.display = 'none';
-    document.querySelector('#menus').style.display = 'block';
     aria2RPCRequest([
         {id: '', jsonrpc: 2, method: 'aria2.getGlobalStat', params: [aria2RPC.jsonrpc['token']]},
         {id: '', jsonrpc: 2, method: 'aria2.tellActive', params: [aria2RPC.jsonrpc['token']]},
         {id: '', jsonrpc: 2, method: 'aria2.tellWaiting', params: [aria2RPC.jsonrpc['token'], 0, 999]},
         {id: '', jsonrpc: 2, method: 'aria2.tellStopped', params: [aria2RPC.jsonrpc['token'], 0, 999]}
     ], (global, active, waiting, stopped) => {
-        document.querySelector('#active').innerText = global.numActive;
-        document.querySelector('#waiting').innerText = global.numWaiting;
-        document.querySelector('#stopped').innerText = global.numStopped;
-        document.querySelector('#download').innerText = bytesToFileSize(global.downloadSpeed) + '/s';
-        document.querySelector('#upload').innerText = bytesToFileSize(global.uploadSpeed) + '/s';
+        document.querySelector('#message').style.display = 'none';
+        document.querySelector('#active.stats').innerText = global.numActive;
+        document.querySelector('#waiting.stats').innerText = global.numWaiting;
+        document.querySelector('#stopped.stats').innerText = global.numStopped;
+        document.querySelector('#download.stats').innerText = bytesToFileSize(global.downloadSpeed) + '/s';
+        document.querySelector('#upload.stats').innerText = bytesToFileSize(global.uploadSpeed) + '/s';
         active.forEach((active, index) => printTaskDetails(active, index, activeQueue));
         waiting.forEach((waiting, index) => printTaskDetails(waiting, index, waitingQueue));
         stopped.forEach((stopped, index) => printTaskDetails(stopped, index, stoppedQueue));
     }, error => {
-        document.querySelector('#menus').style.display = 'none';
-        document.querySelector('#caution').innerText = error;
-        document.querySelector('#caution').style.display = 'block';
+        document.querySelector('#message').innerText = error;
+        document.querySelector('#message').style.display = 'block';
         activeQueue.innerHTML = waitingQueue.innerHTML = stoppedQueue.innerHTML = '';
     }, true);
 }
@@ -89,10 +85,8 @@ function createTaskList(result) {
     task.querySelector('#upload').parentNode.style.display = result.bittorrent ? 'inline-block' : 'none';
     updateTaskDetails(task, result);
     task.querySelector('#remove_btn').addEventListener('click', event => {
-        var status = task.getAttribute('status');
-        aria2RPCRequest({id: '', jsonrpc: 2, method: ['active', 'waiting', 'paused'].includes(status) ? 'aria2.forceRemove' : 'aria2.removeDownloadResult', params: [aria2RPC.jsonrpc['token'], gid]},
-        result => ['complete', 'error', 'paused', 'removed'].includes(status) ? task.remove() : task.querySelector('#ratio').innerText === '100%' ? task.querySelector('#ratio').className = task.setAttribute('status', 'complete') ?? 'complete' : task.setAttribute('status', 'removed'),
-        error => task.remove());
+        aria2RPCRequest({id: '', jsonrpc: 2, method: ['active', 'waiting', 'paused'].includes(task.getAttribute('status')) ? 'aria2.forceRemove' : 'aria2.removeDownloadResult', params: [aria2RPC.jsonrpc['token'], gid]},
+        result => ['complete', 'error', 'paused', 'removed'].includes(task.getAttribute('status')) ? task.remove() : task.querySelector('#name').innerText = '⏳');
     });
     task.querySelector('#invest_btn').addEventListener('click', event => open('task/index.html?' + (result.bittorrent ? 'bt' : 'http') + '#' + gid, '_self'));
     task.querySelector('#retry_btn').addEventListener('click', event => {
@@ -105,13 +99,9 @@ function createTaskList(result) {
             result => task.remove());
         });
     });
-    task.querySelector('#fancybar').addEventListener('click', event => {
-        var status = task.getAttribute('status');
-        var method = ['active', 'waiting'].includes(status) ? 'aria2.pause' : status === 'paused' ? 'aria2.unpause' : null;
-        if (method) {
-            aria2RPCRequest({id: '', jsonrpc: 2, method, params: [aria2RPC.jsonrpc['token'], gid]},
-            result => task.setAttribute('status', method === 'aria2.pause' ? 'paused' : 'active'));
-        }
+    task.querySelector('#meter').addEventListener('click', event => {
+        aria2RPCRequest({id: '', jsonrpc: 2, method: task.getAttribute('status') === 'paused' ? 'aria2.unpause' : 'aria2.pause', params: [aria2RPC.jsonrpc['token'], gid]},
+        result => task.querySelector('#name').innerText = '⏳');
     });
     return task;
 }
@@ -119,7 +109,6 @@ function createTaskList(result) {
 function calcEstimatedTime(task, number) {
     if (isNaN(number) || number === Infinity) {
         task.querySelector('#infinite').style.display = 'inline-block';
-        task.querySelector('#estimate').style.display = 'none';
     }
     else {
         var days = number / 86400 | 0;
@@ -134,6 +123,5 @@ function calcEstimatedTime(task, number) {
         task.querySelector('#minute').parentNode.style.display = minutes > 0 ? 'inline-block' : 'none';
         task.querySelector('#second').innerText = seconds;
         task.querySelector('#infinite').style.display = 'none';
-        task.querySelector('#estimate').style.display = 'inline-block';
     }
 }

@@ -6,21 +6,21 @@
         <link rel="stylesheet" href="css.css">
     </head>
     <body>
-        <div id="name" button></div>
-        <div class="container">
-            <div class="triple">
+        <button id="session"></button>
+        <div class="submenu" style="height: calc(100% - 61px);">
+            <div class="module3">
                 <div>🖥️<span id="local"></span></div>
                 <div>🛰️<span id="ratio"></span></div>
                 <div>📦<span id="remote"></span></div>
             </div>
-            <div class="double">
+            <div class="module">
                 <div title="task_download_desc" i18n_title>
                     <div class="title" i18n>task_download</div>
                     <label style="display: none;">
                         <span class="suffix">B/s</span>
                         <input task="max-download-limit" size type="text">
                     </label>
-                    <div id="download" edit class="active"></div>
+                    <div id="download" class="plate active"></div>
                 </div>
                 <div title="task_upload_desc" i18n_title>
                     <div class="title" i18n>task_upload</div>
@@ -28,17 +28,17 @@
                         <span class="suffix">B/s</span>
                         <input task="max-upload-limit" size type="text">
                     </label>
-                    <div id="upload" edit class="complete"></div>
+                    <div id="upload" class="plate complete"></div>
                 </div>
             </div>
             <div title="task_proxy_desc" i18n_title>
                 <div class="title" i18n>task_proxy</div>
-                <div class="extend">
+                <div class="addon">
                     <input task="all-proxy" type="url">
-                    <span local="uri" root="proxy" button>💾</span>
+                    <button local="uri" root="proxy">💾</button>
                 </div>
             </div>
-            <div http class="double">
+            <div http class="module">
                 <div title="aria2_http_split_desc" i18n_title>
                     <div class="title" i18n>aria2_http_split</div>
                     <div>
@@ -55,7 +55,7 @@
                     <span i18n>common_default</span>: <u><i>20M</i></u>
                 </div>
             </div>
-            <div bt class="double">
+            <div bt class="module">
                 <div title="aria2_bt_ratio_desc" i18n_title>
                     <div class="title" i18n>aria2_bt_ratio</div>
                     <div>
@@ -83,26 +83,22 @@
             </div>
             <div http title="task_urls_desc" i18n_title>
                 <div class="title" i18n>task_urls</div>
-                <div id="source" class="extend">
+                <div id="append" class="addon">
                     <input type="url">
-                    <span button>➕</span>
+                    <button>➕</button>
                 </div>
-                <div id="uris">
-                    <div id="template"></div>
-                </div>
+                <div id="uris"></div>
+                <button id="template"></button>
             </div>
             <div bt title="task_files_desc" i18n_title>
                 <div class="title" i18n>task_files</div>
-                <table id="files">
-                    <tbody>
-                        <tr id="template">
-                            <td id="index"></td>
-                            <td id="name"></td>
-                            <td id="size"></td>
-                            <td id="ratio"></td>
-                        </tr>
-                    </tbody>
-                </table>
+                <div id="files"></div>
+                <div id="template" class="file">
+                    <button id="index"></button>
+                    <div id="name"></div>
+                    <div id="size"></div>
+                    <div id="ratio"></div>
+                </div>
             </div>
         </div>
         <script src="/libs/io.js"></script>

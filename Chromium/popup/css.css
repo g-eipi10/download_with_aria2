@@ -1,14 +1,12 @@
+.block {
+    position: absolute;
+    top: 0px;
+    height: 100%;
+    width: 100%;
+}
+
 .stats {
     margin-right: 10px;
-}
-
-.light {
-    padding: 3px 5px;
-}
-
-.queue {
-    height: 410px;
-    overflow-y: auto;
 }
 
 .session {
@@ -22,19 +20,15 @@
     width: calc(100% - 20px);
 }
 
-.triple > * > * {
-    margin-left: 4px;
-}
-
 .session .sidemenu {
-    top: 3px;
-    right: 3px;
+    top: 1px;
+    right: 1px;
     width: 20px;
 }
 
-.session [button] {
+.session button {
     font-size: 12px;
-    padding: 1px;
+    padding: 0px;
 }
 
 #error {
@@ -46,30 +40,30 @@
     margin-left: -4px;
 }
 
-#fancybar {
+#meter {
     text-align: center;
 }
 
-#fancybar:active {
+#meter:active {
     filter: opacity(30%);
 }
 
-[status="active"] #fancybar {
+[status="active"] #meter {
     background-color: #4cc;
 }
 
-[status="waiting"] #fancybar {
+[status="waiting"] #meter {
     background-color: #488;
 }
 
-[status="paused"] #fancybar {
+[status="paused"] #meter {
     background-color: #888;
 }
 
-[status="removed"] #fancybar {
+[status="removed"] #meter {
     background-color: #844;
 }
 
-[status="error"] #fancybar {
+[status="error"] #meter {
     background-color: #400;
 }
