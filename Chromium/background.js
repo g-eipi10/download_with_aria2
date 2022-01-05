@@ -12,8 +12,6 @@ chrome.contextMenus.onClicked.addListener(info => {
     startDownload({url: info.linkUrl, referer: info.pageUrl, domain: getDomainFromUrl(info.pageUrl)});
 });
 
-chrome.browserAction.setBadgeBackgroundColor({color: '#3cc'});
-
 chrome.downloads.onDeterminingFilename.addListener(item => {
     if (item.fileSize) { download_info.fileSize = item.fileSize; }
     if (aria2RPC.capture['mode'] === '0' || item.finalUrl.startsWith('blob') || item.finalUrl.startsWith('data')) {
@@ -44,7 +42,7 @@ chrome.downloads.onChanged.addListener(item => {
         var domain = download_info.domain;
         var filename = download_info.filename;
 
-        if (captureDownload(domain, getFileExtension(filename), download_info.fileSize)) {
+        captureDownload(domain, getFileExtension(filename), download_info.fileSize) &&
             chrome.downloads.cancel(item.id, () => {
                 var folder = aria2RPC.folder['mode'] === '1' ? download_info.path.slice(0, download_info.path.indexOf(filename)) : aria2RPC.folder['mode'] === '2' ? aria2RPC.folder['uri'] : null;
                 chrome.downloads.erase({id: item.id}, () => {
@@ -53,7 +51,6 @@ chrome.downloads.onChanged.addListener(item => {
                     download_info = {};
                 });
             });
-        }
     }
 });
 
@@ -64,12 +61,8 @@ function startDownload({url, referer, domain, filename, folder}, options = {}) {
         if (folder != '') {
             options['dir'] = folder;
         }
-        if (filename) {
-            options['out'] = filename;
-        }
-        if (aria2RPC.proxy['resolve'].includes(domain)) {
-            options['all-proxy'] = aria2RPC.proxy['uri'];
-        }
+        options['out'] = filename;
+        options['all-proxy'] = aria2RPC.proxy['resolve'].includes(domain) ? aria2RPC.proxy['uri'] : '';
         downloadWithAria2(url, options);
     });
 }
@@ -117,6 +110,13 @@ function getFileExtension(filename) {
 
 function aria2RPCClient() {
     aria2RPCRequest({id: '', jsonrpc: 2, method: 'aria2.getGlobalStat', params: [aria2RPC.jsonrpc['token']]},
-    global => chrome.browserAction.setBadgeText({text: global.numActive === '0' ? '' : global.numActive}),
-    error => chrome.browserAction.setBadgeText({text: 'E'}) ?? showNotification(error), true);
+    global => {
+        chrome.browserAction.setBadgeBackgroundColor({color: global.numActive === '0' ? '#cc3' : '#3cc'});
+        chrome.browserAction.setBadgeText({text: global.numActive});
+    },
+    error => {
+        chrome.browserAction.setBadgeBackgroundColor({color: '#c33'});
+        chrome.browserAction.setBadgeText({text: 'E'});
+        showNotification(error);
+    }, true);
 }
