@@ -15,19 +15,16 @@ document.querySelector('.submenu').addEventListener('change', event => {
     changeTaskOption(gid, event.target.getAttribute('task'), event.target.value);
 });
 
-document.querySelectorAll('.plate').forEach(node => {
-    var label = node.parentNode.querySelector('label');
-    var field = label.querySelector('input');
-    node.addEventListener('click', event => {
+document.querySelectorAll('.block').forEach(block => {
+    var field = block.parentNode.querySelector('input');
+    block.addEventListener('click', event => {
         if (!field.disabled) {
-            node.style.display = 'none';
-            label.style.display = 'block';
+            block.style.display = 'none';
             field.focus();
         }
     });
-    field.addEventListener('change', event => {
-        label.style.display = 'none';
-        node.style.display = 'block';
+    field.addEventListener('blur', event => {
+        block.style.display = 'block';
     });
 });
 
@@ -77,6 +74,14 @@ function aria2RPCClient() {
     }, null, true);
 }
 
+function printTableCell(table, object, resolve) {
+    var cell = table.parentNode.querySelector('#template').cloneNode(true);
+    cell.removeAttribute('id');
+    typeof resolve === 'function' ? resolve(cell, object) : null;
+    table.appendChild(cell);
+    return cell;
+}
+
 function printTaskUris(uris, table) {
     var cells = table.querySelectorAll('button');
     uris.forEach((uri, index) => {
@@ -85,14 +90,6 @@ function printTaskUris(uris, table) {
         cell.className = uri.status === 'used' ? 'active' : 'waiting';
     });
     cells.forEach((cell, index) => index > uris.length ? cell.remove() : null);
-}
-
-function printTableCell(table, object, resolve) {
-    var cell = table.parentNode.querySelector('#template').cloneNode(true);
-    cell.removeAttribute('id');
-    typeof resolve === 'function' ? resolve(cell, object) : null;
-    table.appendChild(cell);
-    return cell;
 }
 
 function printTaskFiles(files, table) {

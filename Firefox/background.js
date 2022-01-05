@@ -15,7 +15,6 @@ browser.contextMenus.onClicked.addListener((info, tab) => {
 browser.browserAction.setBadgeBackgroundColor({color: '#3cc'});
 
 browser.downloads.onCreated.addListener(async item => {
-    console.log(item);
     if (aria2RPC.capture['mode'] === '0' || item.url.startsWith('blob') || item.url.startsWith('data')) {
         return;
     }
@@ -25,7 +24,7 @@ browser.downloads.onCreated.addListener(async item => {
     var referer = item.referrer && item.referrer !== 'about:blank' ? item.referrer : tabs[0].url;
     var domain = getDomainFromUrl(referer);
     var filename = getFileNameFromUri(item.filename);
-    var folder = aria2RPC.folder['mode'] === '1' ? item.filename.slice(0, item.filename.indexOf(filename)) : aria2RPC.folder['mode'] === '2' ? aria2RPC.folder['uri'] : null;
+    var folder = aria2RPC.folder['mode'] === '0' ? item.filename.slice(0, item.filename.indexOf(filename)) : aria2RPC.folder['mode'] === '1' ? item.filename.slice(0, item.filename.indexOf(filename)) : aria2RPC.folder['mode'] === '2' ? aria2RPC.folder['uri'] : null;
     var storeId = tabs[0].cookieStoreId;
 
     if (await captureDownload(domain, getFileExtension(filename), url)) {
@@ -76,7 +75,7 @@ async function captureDownload(domain, fileExt, url) {
 }
 
 function getDomainFromUrl(url) {
-    var host = /^https?:\/\/([^\/]+)\//.exec(url)[1];
+    var host = /^[^:]+:\/\/([^\/]+)\//.exec(url)[1];
     var hostname = /:\d{2,5}$/.test(host) ? host.slice(0, host.lastIndexOf(':')) : host;
     if (hostname.includes(':')) {
         return hostname.slice(1, -1);
