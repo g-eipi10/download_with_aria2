@@ -22,7 +22,7 @@ browser.downloads.onCreated.addListener(async item => {
     var referer = item.referrer && item.referrer !== 'about:blank' ? item.referrer : tabs[0].url;
     var domain = getDomainFromUrl(referer);
     var filename = getFileNameFromUri(item.filename);
-    var folder = aria2RPC.folder['mode'] === '0' ? item.filename.slice(0, item.filename.indexOf(filename)) : aria2RPC.folder['mode'] === '1' ? item.filename.slice(0, item.filename.indexOf(filename)) : aria2RPC.folder['mode'] === '2' ? aria2RPC.folder['uri'] : null;
+    var folder = aria2RPC.folder['mode'] === '1' ? item.filename.slice(0, item.filename.indexOf(filename)) : aria2RPC.folder['mode'] === '2' ? aria2RPC.folder['uri'] : null;
     var storeId = tabs[0].cookieStoreId;
 
     if (await captureDownload(domain, getFileExtension(filename), url)) {
@@ -38,16 +38,10 @@ async function startDownload({url, referer, domain, filename, folder, storeId}, 
     var cookies = await browser.cookies.getAll({url, storeId});
     options['header'] = ['Cookie:', 'Referer: ' + referer, 'User-Agent: ' + aria2RPC['useragent']];
     cookies.forEach(cookie => options['header'][0] += ' ' + cookie.name + '=' + cookie.value + ';');
-    if (folder) {
-        options['dir'] = folder;
-    }
-    if (filename) {
-        options['out'] = filename;
-    }
-    if (aria2RPC.proxy['resolve'].includes(domain)) {
-        options['all-proxy'] = aria2RPC.proxy['uri'];
-    }
-    downloadWithAria2(url, options);
+    options['out'] = filename;
+    options['all-proxy'] = aria2RPC.proxy['resolve'].includes(domain) ? aria2RPC.proxy['uri'] : '';
+    folder && (options['dir'] = folder);
+    aria2RPCCall({method: 'aria2.addUri', params: [[url], options]}, result => showNotification(url), showNotification);
 }
 
 async function captureDownload(domain, fileExt, url) {
@@ -96,12 +90,10 @@ function getFileExtension(filename) {
 }
 
 function aria2RPCClient() {
-    aria2RPCRequest({id: '', jsonrpc: 2, method: 'aria2.getGlobalStat', params: [aria2RPC.jsonrpc['token']]},
-    global => {
+    aria2RPCCall({method: 'aria2.getGlobalStat'}, global => {
         browser.browserAction.setBadgeBackgroundColor({color: global.numActive === '0' ? '#cc3' : '#3cc'});
         browser.browserAction.setBadgeText({text: global.numActive});
-    },
-    error => {
+    }, error => {
         browser.browserAction.setBadgeBackgroundColor({color: '#c33'});
         browser.browserAction.setBadgeText({text: 'E'});
         showNotification(error);
