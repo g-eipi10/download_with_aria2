@@ -1,7 +1,23 @@
 document.querySelector('#manager').style.display = location.search === '?popup' ? 'none' : 'block';
-document.querySelector('#back').parentNode.style.display = location.search === '?popup' ? 'block' : 'none';
+document.querySelector('#back_btn').style.display = location.search === '?popup' ? 'inline-block' : 'none';
 
-document.querySelector('#back').addEventListener('click', event => {
+[
+    {active: 0, tabs: document.querySelectorAll('[data-normal] > button'), subs: document.querySelectorAll('[data-normal] > .submenu')},
+    {active: 0, tabs: document.querySelectorAll('[data-global] > button'), subs: document.querySelectorAll('[data-global] > .submenu')}
+].forEach(({active, tabs, subs}, index) => {
+    tabs[active].classList.add('checked');
+    tabs.forEach((tab, index) => {
+        tab.addEventListener('click', event => {
+            tabs[active].classList.remove('checked');
+            subs[active].style.display = 'none';
+            active = index;
+            tabs[index].classList.add('checked');
+            subs[index].style.display = 'block';
+        });
+    });
+});
+
+document.querySelector('#back_btn').addEventListener('click', event => {
     history.back();
 });
 
@@ -21,7 +37,9 @@ document.querySelector('#import').addEventListener('change', event => {
 });
 
 document.querySelector('#aria2_btn').addEventListener('click', event => {
-    aria2RPCCall({method: 'aria2.getVersion'}, version => open('aria2/index.html?' + version.version, '_self'), showNotification);
+    document.body.getAttribute('data-mode') !== 'normal' ? document.body.setAttribute('data-mode', 'normal')
+        : aria2RPCCall({method: 'aria2.getGlobalOption'}, options => document.body.setAttribute('data-mode', 'global') ?? printOptions(options), showNotification);
+    event.target.classList.toggle('checked');
 });
 
 document.querySelector('#show_btn').addEventListener('click', event => {
@@ -29,10 +47,14 @@ document.querySelector('#show_btn').addEventListener('click', event => {
     event.target.classList.toggle('checked');
 });
 
+document.querySelector('#global').addEventListener('change', event => {
+    aria2RPCCall({method: 'aria2.changeGlobalOption', params: [{[event.target.name]: event.target.value}]});
+});
+
 function aria2RPCClient() {
-    document.querySelectorAll('[local]').forEach(field => {
-        var name = field.getAttribute('local');
-        var root = field.getAttribute('root');
+    document.querySelectorAll('#normal [id]:not(button)').forEach(field => {
+        var name = field.id;
+        var root = field.name;
         var value = root in aria2RPC ? aria2RPC[root][name] : aria2RPC[name] ?? '';
         var array = value.constructor === Array;
         var token = field.getAttribute('token');
@@ -44,12 +66,12 @@ function aria2RPCClient() {
             chrome.storage.local.set(aria2RPC);
         });
     });
-    document.querySelectorAll('[tree]').forEach(menu => {
-        var root = menu.getAttribute('tree');
-        var rule = menu.getAttribute('rule');
+    document.querySelectorAll('[data-rule]').forEach(menu => {
+        var rule = menu.getAttribute('data-rule').match(/[^,]+/g);
+        var root = rule.shift();
         var value = aria2RPC[root]['mode'];
         menu.style.display = rule.includes(value) ? 'block' : 'none';
-        document.querySelector('[root="' + root + '"][local="mode"]').addEventListener('change', event => {
+        document.querySelector('#mode[name="' + root + '"]').addEventListener('change', event => {
             menu.style.display = rule.includes(event.target.value) ? 'block' : 'none';
         });
     });
