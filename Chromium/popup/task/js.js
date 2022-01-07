@@ -1,7 +1,7 @@
 var gid = location.hash.slice(1);
 var type = location.search.slice(1);
-var uris = document.querySelector('#uris');
-var files = document.querySelector('#files');
+var http = document.querySelector('[http] #form');
+var bt = document.querySelector('[bt] #form');
 var torrent = [];
 
 document.querySelector('#session').addEventListener('click', event => {
@@ -13,7 +13,7 @@ document.querySelectorAll('[http], [bt]').forEach(field => {
 });
 
 document.querySelector('.submenu').addEventListener('change', event => {
-    event.target.hasAttribute('task') && aria2RPCCall({method: 'aria2.changeOption', params: [gid, {[event.target.getAttribute('task')]: event.target.value}]});
+    event.target.hasAttribute('aria2') && aria2RPCCall({method: 'aria2.changeOption', params: [gid, {[event.target.getAttribute('aria2')]: event.target.value}]});
 });
 
 document.querySelectorAll('.block').forEach(block => {
@@ -34,11 +34,11 @@ document.querySelector('#append button').addEventListener('click', event => {
     aria2RPCCall({method: 'aria2.changeUri', params: [gid, 1, [], [document.querySelector('#append input').value]]}, result => document.querySelector('#append input').value = '');
 });
 
-uris.addEventListener('click', event => {
+http.addEventListener('click', event => {
     event.ctrlKey ? aria2RPCCall({method: 'aria2.changeUri', params: [gid, 1, [event.target.innerText], []]}) : navigator.clipboard.writeText(event.target.innerText);
 });
 
-files.addEventListener('click', event => {
+bt.addEventListener('click', event => {
     if (event.target.id === 'index') {
         var index = torrent.indexOf(event.target.innerText);
         var files = index !== -1 ? [...torrent.slice(0, index), ...torrent.slice(index + 1)] : [...torrent, event.target.innerText];
@@ -47,9 +47,8 @@ files.addEventListener('click', event => {
 });
 
 function aria2RPCClient() {
-    aria2RPCCall({method: 'aria2.getOption', params: [gid]},
-    options => document.querySelectorAll('[task]').forEach(task => parseValueToOption(task, 'task', options)));
-    printFeedButton();
+    printButton();
+    aria2RPCCall({method: 'aria2.getOption', params: [gid]}, printOptions);
     aria2RPCCall({method: 'aria2.tellStatus', params: [gid]}, ({status, bittorrent, completedLength, totalLength, downloadSpeed, uploadSpeed, files}) => {
         var disabled = ['complete', 'error'].includes(status);
         document.querySelector('#session').innerText = bittorrent && bittorrent.info ? bittorrent.info.name : files[0].path.slice(files[0].path.lastIndexOf('/') + 1) || files[0].uris[0].uri;
@@ -59,42 +58,42 @@ function aria2RPCClient() {
         document.querySelector('#remote').innerText = bytesToFileSize(totalLength);
         document.querySelector('#download').innerText = bytesToFileSize(downloadSpeed) + '/s';
         document.querySelector('#upload').innerText = bytesToFileSize(uploadSpeed) + '/s';
-        document.querySelector('[task="max-download-limit"]').disabled = disabled;
-        document.querySelector('[task="max-upload-limit"]').disabled = disabled || type === 'http';
-        document.querySelector('[task="all-proxy"]').disabled = disabled;
-        type === 'http' && printTaskUris(files[0].uris, uris) || type === 'bt' && printTaskFiles(files, files);
+        document.querySelector('[aria2="max-download-limit"]').disabled = disabled;
+        document.querySelector('[aria2="max-upload-limit"]').disabled = disabled || type === 'http';
+        document.querySelector('[aria2="all-proxy"]').disabled = disabled;
+        type === 'http' && printTaskUris(http, files[0].uris) || type === 'bt' && printTaskFiles(bt, files);
     }, null, true);
 }
 
-function printTableCell(table, object, resolve) {
+function printTableCell(table, resolve) {
     var cell = table.parentNode.querySelector('#template').cloneNode(true);
     cell.removeAttribute('id');
-    typeof resolve === 'function' && resolve(cell, object);
+    typeof resolve === 'function' && resolve(cell);
     table.appendChild(cell);
     return cell;
 }
 
-function printTaskUris(uris, table) {
+function printTaskUris(table, uris) {
     var cells = table.querySelectorAll('button');
-    uris.forEach((uri, index) => {
-        var cell = cells[index] ?? printTableCell(table, uri);
-        cell.innerText = uri.uri;
-        cell.className = uri.status === 'used' ? 'active' : 'waiting';
+    uris.forEach(({uri, status}, index) => {
+        var cell = cells[index] ?? printTableCell(table);
+        cell.innerText = uri;
+        cell.className = status === 'used' ? 'active' : 'waiting';
     });
     cells.forEach((cell, index) => index > uris.length && cell.remove());
 }
 
-function printTaskFiles(files, table) {
+function printTaskFiles(table, files) {
     var cells = table.querySelectorAll('.file');
-    files.forEach((file, index) => {
-        var cell = cells[index] ?? printTableCell(table, file, (cell, file) => {
-            cell.querySelector('#index').innerText = file.index;
-            cell.querySelector('#name').innerText = file.path.slice(file.path.lastIndexOf('/') + 1);
-            cell.querySelector('#name').title = file.path;
-            cell.querySelector('#size').innerText = bytesToFileSize(file.length);
-            file.selected === 'true' && torrent.push(file.index);
+    files.forEach(({index, selected, path, length, completedLength}, at) => {
+        var cell = cells[at] ?? printTableCell(table, cell => {
+            cell.querySelector('#index').innerText = index;
+            cell.querySelector('#name').innerText = path.slice(path.lastIndexOf('/') + 1);
+            cell.querySelector('#name').title = path;
+            cell.querySelector('#size').innerText = bytesToFileSize(length);
+            selected === 'true' && torrent.push(index);
         });
-        cell.querySelector('#index').className = file.selected === 'true' ? 'active' : 'error';
-        cell.querySelector('#ratio').innerText = ((file.completedLength / file.length * 10000 | 0) / 100) + '%';
+        cell.querySelector('#index').className = selected === 'true' ? 'active' : 'error';
+        cell.querySelector('#ratio').innerText = ((completedLength / length * 10000 | 0) / 100) + '%';
     });
 }

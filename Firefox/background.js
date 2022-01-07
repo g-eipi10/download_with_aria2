@@ -22,7 +22,7 @@ browser.downloads.onCreated.addListener(async item => {
     var referer = item.referrer && item.referrer !== 'about:blank' ? item.referrer : tabs[0].url;
     var domain = getDomainFromUrl(referer);
     var filename = getFileNameFromUri(item.filename);
-    var folder = aria2RPC.folder['mode'] === '1' ? item.filename.slice(0, item.filename.indexOf(filename)) : aria2RPC.folder['mode'] === '2' ? aria2RPC.folder['uri'] : null;
+    var folder = (aria2RPC.folder['mode'] === '0' || aria2RPC.folder['mode'] === '1') ? item.filename.slice(0, item.filename.indexOf(filename)) : aria2RPC.folder['mode'] === '2' ? aria2RPC.folder['uri'] : null;
     var storeId = tabs[0].cookieStoreId;
 
     if (await captureDownload(domain, getFileExtension(filename), url)) {
@@ -91,8 +91,8 @@ function getFileExtension(filename) {
 
 function aria2RPCClient() {
     aria2RPCCall({method: 'aria2.getGlobalStat'}, global => {
-        browser.browserAction.setBadgeBackgroundColor({color: global.numActive === '0' ? '#cc3' : '#3cc'});
-        browser.browserAction.setBadgeText({text: global.numActive});
+        browser.browserAction.setBadgeBackgroundColor({color: '#3cc'});
+        browser.browserAction.setBadgeText({text: global.numActive === '0' ? '' : global.numActive});
     }, error => {
         browser.browserAction.setBadgeBackgroundColor({color: '#c33'});
         browser.browserAction.setBadgeText({text: 'E'});
