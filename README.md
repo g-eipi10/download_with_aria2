@@ -1,12 +1,11 @@
 # About
 
 - This extension is completely rewritten from [chrome-aria2-integration](https://github.com/robbielj/chrome-aria2-integration)
-- Enhanced browser download monitoring, and built-in Aria2 Manager
 
 # Usage
 - Indicate running status over toolbar icon
-    - Idle: Yellow `0`
-    - Active: Blue `Number`
+    - Idle: `Empty`
+    - Active: Light Blue `Number`
     - Error: Red `E`
 - Built-in `Aria2 Web Manager`
     - Filtering tasks with queues `Active`, `Stopped`, and `Removed`
@@ -16,10 +15,10 @@
         - Change selected files for bittorrent downloads
         - Add or remove download uris for http/ftp downloads
     - `Options` page for the extension
-    - `Global Options` page for Aria2
-- Capturing browser downloads
+    - `Global Options` page for aria2 jsonrpc
+- Capture browser downloads
     - Save captured downloads to other directories [**Firefox Only**]
-- Support proxy and auto-proxy
+- Support proxy setting and provide auto matching rule
 
 # Feedback
 
@@ -43,7 +42,7 @@
 # Others
 
 - The extension is not published on `Google Web Store`, or `Microsoft Store`.
-    - `Firefox Add-on` hosted by [@ivysrono](https://addons.mozilla.org/firefox/addon/download-with-aria2/)
-- Built-in `Aria2 Web Manager` is not powerfule enough
+    - `Firefox Add-on` by [@ivysrono](https://addons.mozilla.org/firefox/addon/download-with-aria2/)
+- Alternative of built-in `Aria2 Web Manager`
     - [`Aria2 WebUI`](https://ziahamza.github.io/webui-aria2/)
     - [`Yet Another Aria2 Web Frontend`](http://binux.github.io/yaaw/demo/)
