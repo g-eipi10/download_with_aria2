@@ -1,8 +1,5 @@
-document.querySelector('#manager').style.display = location.search === '?popup' ? 'none' : 'block';
-document.querySelector('#back_btn').style.display = location.search === '?popup' ? 'inline-block' : 'none';
-
 [
-    {active: 0, tabs: document.querySelectorAll('[data-normal] > button'), subs: document.querySelectorAll('[data-normal] > .submenu')},
+    {active: 0, tabs: document.querySelectorAll('[data-option] > button'), subs: document.querySelectorAll('[data-option] > .submenu')},
     {active: 0, tabs: document.querySelectorAll('[data-global] > button'), subs: document.querySelectorAll('[data-global] > .submenu')}
 ].forEach(({active, tabs, subs}, index) => {
     tabs[active].classList.add('checked');
@@ -17,11 +14,16 @@ document.querySelector('#back_btn').style.display = location.search === '?popup'
     });
 });
 
+'browser' in this ? document.querySelector('[data-chrome]').remove() : document.querySelector('[data-firefox]').remove();
+
+document.querySelector('#manager').style.display = location.search === '?popup' ? 'none' : 'block';
+document.querySelector('#back_btn').style.display = location.search === '?popup' ? 'inline-block' : 'none';
+
 document.querySelector('#back_btn').addEventListener('click', event => {
     history.back();
 });
 
-document.querySelector('#export').addEventListener('click', event => {
+document.querySelector('#export_btn').addEventListener('click', event => {
     var blob = new Blob([JSON.stringify(aria2RPC)], {type: 'application/json; charset=utf-8'});
     var saver = document.createElement('a');
     saver.href = URL.createObjectURL(blob);
@@ -29,7 +31,7 @@ document.querySelector('#export').addEventListener('click', event => {
     saver.click();
 });
 
-document.querySelector('#import').addEventListener('change', event => {
+document.querySelector('#import_btn').addEventListener('change', event => {
     readFileAsBinary(event.target.files[0], data => {
         chrome.storage.local.set(JSON.parse(atob(data)));
         location.reload();
@@ -37,8 +39,7 @@ document.querySelector('#import').addEventListener('change', event => {
 });
 
 document.querySelector('#aria2_btn').addEventListener('click', event => {
-    document.body.getAttribute('data-mode') !== 'normal' ? document.body.setAttribute('data-mode', 'normal')
-        : aria2RPCCall({method: 'aria2.getGlobalOption'}, options => document.body.setAttribute('data-mode', 'global') ?? printOptions(options), showNotification);
+    document.body.getAttribute('data-prefs') === 'option' ? document.body.setAttribute('data-prefs', 'global') : document.body.setAttribute('data-prefs', 'option');
     event.target.classList.toggle('checked');
 });
 
@@ -52,7 +53,11 @@ document.querySelector('#global').addEventListener('change', event => {
 });
 
 function aria2RPCClient() {
-    document.querySelectorAll('#normal [id]:not(button)').forEach(field => {
+    aria2RPCCall({method: 'aria2.getGlobalOption'}, options => {
+        document.querySelector('#aria2_btn').style.display = 'inline-block';
+        printOptions(document.querySelectorAll('#global [name]'), options);
+    }, error => document.querySelector('#aria2_btn').style.display = 'none');
+    document.querySelectorAll('#option [id]:not(button)').forEach(field => {
         var name = field.id;
         var root = field.name;
         var value = root in aria2RPC ? aria2RPC[root][name] : aria2RPC[name] ?? '';

@@ -17,12 +17,6 @@
     "common_advanced": {
         "message": "Advanced"
     },
-    "common_back": {
-        "message": "Back"
-    },
-    "common_global": {
-        "message": "Global"
-    },
     "time_day": {
         "message": "d"
     },
@@ -38,11 +32,20 @@
     "time_second_full": {
         "message": "Second(s)"
     },
+    "option_back": {
+        "message": "Back"
+    },
+    "option_expert": {
+        "message": "Expert"
+    },
     "option_basic": {
         "message": "Basic"
     },
     "option_download": {
         "message": "Download"
+    },
+    "option_manager": {
+        "message": "Manage Options"
     },
     "option_export": {
         "message": "Export"
@@ -181,6 +184,9 @@
     },
     "task_submit": {
         "message": "Submit"
+    },
+    "task_metalink": {
+        "message": "Upload"
     },
     "task_download": {
         "message": "Download Speed"

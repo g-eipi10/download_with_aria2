@@ -1,19 +1,17 @@
 var gid = location.hash.slice(1);
 var type = location.search.slice(1);
-var http = document.querySelector('[http] #form');
-var bt = document.querySelector('[bt] #form');
+var http = document.querySelector('[data-http] #form');
+var bt = document.querySelector('[data-bt] #form');
 var torrent = [];
+
+document.body.setAttribute('data-aria2', type);
+
+document.querySelector('#manager').addEventListener('change', event => {
+    event.target.name && aria2RPCCall({method: 'aria2.changeOption', params: [gid, {[event.target.name]: event.target.value}]});
+});
 
 document.querySelector('#session').addEventListener('click', event => {
     history.back();
-});
-
-document.querySelectorAll('[http], [bt]').forEach(field => {
-    field.style.display = field.hasAttribute(type) ? field.classList.contains('module') ? 'grid' : 'block' : 'none';
-});
-
-document.querySelector('.submenu').addEventListener('change', event => {
-    event.target.hasAttribute('aria2') && aria2RPCCall({method: 'aria2.changeOption', params: [gid, {[event.target.getAttribute('aria2')]: event.target.value}]});
 });
 
 document.querySelectorAll('.block').forEach(block => {
@@ -24,10 +22,6 @@ document.querySelectorAll('.block').forEach(block => {
     field.addEventListener('blur', event => {
         block.style.display = 'block';
     });
-});
-
-document.querySelector('button[local="uri"]').addEventListener('click', event => {
-    aria2RPCCall({method: 'aria2.changeOption', params: [gid, {'all-proxy': aria2RPC.proxy['uri']}]});
 });
 
 document.querySelector('#append button').addEventListener('click', event => {
@@ -47,8 +41,8 @@ bt.addEventListener('click', event => {
 });
 
 function aria2RPCClient() {
-    printButton();
-    aria2RPCCall({method: 'aria2.getOption', params: [gid]}, printOptions);
+    printButton(document.querySelector('#manager [data-feed]'), (name, value) => aria2RPCCall({method: 'aria2.changeOption', params: [gid, {[name]: value}]}));
+    aria2RPCCall({method: 'aria2.getOption', params: [gid]}, options => printOptions(document.querySelectorAll('#manager input[name]'), options));
     aria2RPCCall({method: 'aria2.tellStatus', params: [gid]}, ({status, bittorrent, completedLength, totalLength, downloadSpeed, uploadSpeed, files}) => {
         var disabled = ['complete', 'error'].includes(status);
         document.querySelector('#session').innerText = bittorrent && bittorrent.info ? bittorrent.info.name : files[0].path.slice(files[0].path.lastIndexOf('/') + 1) || files[0].uris[0].uri;
@@ -58,9 +52,9 @@ function aria2RPCClient() {
         document.querySelector('#remote').innerText = bytesToFileSize(totalLength);
         document.querySelector('#download').innerText = bytesToFileSize(downloadSpeed) + '/s';
         document.querySelector('#upload').innerText = bytesToFileSize(uploadSpeed) + '/s';
-        document.querySelector('[aria2="max-download-limit"]').disabled = disabled;
-        document.querySelector('[aria2="max-upload-limit"]').disabled = disabled || type === 'http';
-        document.querySelector('[aria2="all-proxy"]').disabled = disabled;
+        document.querySelector('[name="max-download-limit"]').disabled = disabled;
+        document.querySelector('[name="max-upload-limit"]').disabled = disabled || type === 'http';
+        document.querySelector('[name="all-proxy"]').disabled = disabled;
         type === 'http' && printTaskUris(http, files[0].uris) || type === 'bt' && printTaskFiles(bt, files);
     }, null, true);
 }
